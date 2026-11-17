@@ -1,0 +1,12 @@
+{
+  "product": "BIMA HMI OTA LAB",
+  "releaseVersion": "0.1.1",
+  "releaseType": "lab-ui-template-only",
+  "nodeId": "e091d6d3cb26a488",
+  "nodeType": "ui_template",
+  "nodeProperty": "format",
+  "artifact": "system-settings.html",
+  "sha256": "f3fb11bd0ff1c0fe3d4ac541581687495bbae784773bd5115f31e1cffbed5d22",
+  "warning": "PUBLIC TEST SANITIZED SAMPLE. HMI source still visible to anyone with this URL. LAB ONLY, no digital signature, NEVER production.",
+  "labReleaseNote": "Sample network addresses changed to 192.0.2.0/24 reserved documentation network; differs in SHA from original local pilot candidate."
+}

@@ -1,0 +1,3389 @@
+<div class="hmi-root system-page" ng-init="initSystemPage()">
+
+    <!-- HEADER -->
+    <div class="top-header">
+        <div class="header-left">
+            <div class="page-label">SYSTEM SETTINGS <span style="font-size:10px;color:#80e0fc;vertical-align:middle">OTA TEST v0.1.1</span></div>
+        </div>
+
+        <div class="header-center">
+            <img class="brand-logo" src="/images/bima_one_logo_no_tagline.png">
+        </div>
+
+        <div class="header-right">
+            <div class="wifi-icon" ng-class="{
+             'wifi-good': data.connection.quality === 'good',
+             'wifi-stable': data.connection.quality === 'stable',
+             'wifi-slow': data.connection.quality === 'slow',
+             'wifi-offline': data.connection.quality === 'offline'
+           }">
+                <span></span><span></span><span></span>
+            </div>
+
+            <div class="online-text" ng-class="{
+             'wifi-good-text': data.connection.quality === 'good',
+             'wifi-stable-text': data.connection.quality === 'stable',
+             'wifi-slow-text': data.connection.quality === 'slow',
+             'wifi-offline-text': data.connection.quality === 'offline'
+           }">
+                <div>SYSTEM</div>
+                <div>{{data.connection.onlineText}}</div>
+            </div>
+
+            <div class="header-line"></div>
+
+            <div class="clock-box">
+                <div class="clock">{{data.time}}</div>
+                <div class="date">{{data.date}}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TITLE -->
+    <div class="title-bar">
+        {{data.PumpSite}}
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="system-content">
+
+        <!-- LEFT AREA -->
+        <div class="system-left">
+
+          <!-- SYSTEM PANEL SETTINGS -->
+          <div class="system-card system-panel-card"
+              ng-class="{'accordion-closed': !accordion.systemPanel}">
+
+            <div class="accordion-header" ng-click="toggleAccordion('systemPanel')">
+              <span>SYSTEM PANEL SETTINGS</span>
+              <span class="accordion-arrow" ng-class="{'arrow-open': accordion.systemPanel}"></span>
+            </div>
+
+            <div class="accordion-body" ng-show="accordion.systemPanel">
+
+              <!-- SYSTEM PANEL: 4 DROPDOWN DENGAN LOCK EDIT PER FIELD -->
+              <div class="setting-row system-panel-row"
+                  ng-repeat="item in systemPanelSettings track by item.key">
+
+                <div class="setting-label">{{item.label}}</div>
+
+                <div class="setting-input-wrap">
+
+                  <select class="setting-input setting-select system-panel-select"
+                          ng-model="item.input"
+                          ng-options="opt.value as opt.label for opt in item.options"
+                          ng-mousedown="lockSystemPanelEdit(item)"
+                          ng-touchstart="lockSystemPanelEdit(item)"
+                          ng-focus="lockSystemPanelEdit(item)"
+                          ng-keydown="lockSystemPanelEdit(item)"
+                          ng-change="lockSystemPanelEdit(item)">
+                    <option value="">Select</option>
+                  </select>
+
+                </div>
+
+                <button class="setting-set-btn" ng-click="setSystemPanelSetting(item)">
+                  SET
+                </button>
+
+              </div>
+
+              <!-- AUTO START SWITCH -->
+              <div class="auto-start-row">
+
+                <div class="auto-start-label">
+                  Auto-Start On Startup
+                </div>
+
+                <button class="auto-start-switch-btn"
+                        ng-class="{
+                            'auto-enabled': data.autoStartEnabled === true,
+                            'auto-disabled': data.autoStartEnabled === false
+                        }"
+                        ng-disabled="data.autoStartEnabled === null"
+                        ng-click="toggleAutoStart()">
+                
+                    <span class="auto-start-text">
+                        {{data.autoStartEnabled === null
+                          ? 'Loading...'
+                          : (data.autoStartEnabled ? 'Enabled' : 'Disabled')}}
+                    </span>
+                
+                    <span class="auto-switch">
+                        <span class="auto-switch-dot"></span>
+                    </span>
+                
+                </button>
+
+              </div>
+
+            </div>
+          </div>
+
+            <!-- SYSTEM RTU SETTINGS -->
+            <div class="system-card system-rtu-card" ng-class="{'accordion-closed': !accordion.systemRtu}">
+
+                <div class="accordion-header" ng-click="toggleAccordion('systemRtu')">
+                    <span>SYSTEM RTU SETTINGS</span>
+                    <span class="accordion-arrow" ng-class="{'arrow-open': accordion.systemRtu}"></span>
+                </div>
+
+                <div class="accordion-body" ng-show="accordion.systemRtu">
+
+                    <div class="setting-row" ng-repeat="item in systemRtuSettings track by item.key">
+
+                        <div class="setting-label">{{item.label}}</div>
+
+                        <div class="setting-input-wrap">
+                            <input type="text"
+                     readonly
+                     ng-model="item.input"
+                     class="setting-input hmi-keyboard-input"
+                     data-keyboard-type="text"
+                     data-keyboard-title="{{item.label}}"
+                     data-keyboard-case="upper"
+                     data-keyboard-max="{{item.maxLength || 30}}"
+                     placeholder="{{item.placeholder}}">
+                            <span class="setting-unit">{{item.unit}}</span>
+                        </div>
+
+                        <button class="setting-set-btn" ng-click="setSystemRtuSetting(item)">
+              SET
+            </button>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- STEPPING PUMP SETTINGS -->
+            <div class="system-card stepping-pump-card"
+                ng-class="{'accordion-closed': !accordion.steppingPump}">
+
+              <div class="accordion-header" ng-click="toggleAccordion('steppingPump')">
+                <span>STEPPING PUMP SETTINGS</span>
+                <span class="accordion-arrow" ng-class="{'arrow-open': accordion.steppingPump}"></span>
+              </div>
+
+              <div class="accordion-body stepping-body" ng-show="accordion.steppingPump">
+
+                <!-- STEPPING INTERVAL -->
+                <div class="setting-row stepping-compact-row">
+
+                  <div class="setting-label">
+                    Stepping Interval
+                  </div>
+
+                  <div class="setting-input-wrap stepping-minute-wrap">
+
+                    <select class="setting-input setting-select stepping-minute-select"
+                            ng-model="steppingInterval.input"
+                            ng-options="opt.value as opt.label for opt in steppingInterval.options">
+
+                      <option value="">
+                        {{steppingInterval.currentLabel}}
+                      </option>
+
+                    </select>
+
+
+                  </div>
+
+                  <button class="setting-set-btn" ng-click="setSteppingInterval()">
+                    SET
+                  </button>
+
+                </div>
+
+                <!-- STEPPING STATUS -->
+                <div class="auto-start-row stepping-status-compact">
+
+                  <div class="auto-start-label">
+                    Stepping Status
+                  </div>
+
+                  <button class="auto-start-switch-btn"
+                          ng-class="data.steppingEnabled ? 'auto-enabled' : 'auto-disabled'"
+                          ng-click="toggleSteppingStatus()">
+
+                    <span class="auto-start-text">
+                      {{data.steppingEnabled ? 'Enabled' : 'Disabled'}}
+                    </span>
+
+                    <span class="auto-switch">
+                      <span class="auto-switch-dot"></span>
+                    </span>
+
+                  </button>
+
+                </div>
+
+                <!-- FORCE STEPPING -->
+                <button class="force-stepping-btn compact-force-stepping-btn"
+                        ng-click="forceStepping()">
+                  FORCE STEPPING
+                </button>
+
+              </div>
+            </div>
+
+            <!-- BOOST PUMP SETTINGS -->
+            <div class="system-card boost-pump-card"
+                ng-class="{'accordion-closed': !accordion.boostPump}">
+
+              <div class="accordion-header" ng-click="toggleAccordion('boostPump')">
+                <span>BOOST PUMP SETTINGS</span>
+                <span class="accordion-arrow" ng-class="{'arrow-open': accordion.boostPump}"></span>
+              </div>
+
+              <div class="accordion-body boost-body" ng-show="accordion.boostPump">
+
+                <!-- BOOST BAR -->
+                <div class="setting-row boost-compact-row">
+
+                  <div class="setting-label">
+                    Boost Bar
+                  </div>
+
+                  <div class="setting-input-wrap boost-input-wrap">
+                    <!-- BOOST BAR -->
+                    <input type="text"
+                          readonly
+                          ng-model="boostPressure.input"
+                          class="setting-input hmi-keyboard-input boost-input"
+                          data-keyboard-type="number"
+                          data-keyboard-title="Boost Bar"
+                          data-keyboard-max="8"
+                          placeholder="{{boostPressure.placeholder}}">
+
+                    <span class="setting-unit boost-unit">
+                      Bar
+                    </span>
+                  </div>
+
+                  <button class="setting-set-btn" ng-click="setBoostPressure()">
+                    SET
+                  </button>
+
+                </div>
+
+                <!-- BOOST DURATION -->
+                <div class="setting-row boost-compact-row">
+
+                  <div class="setting-label">
+                    Boost Duration
+                  </div>
+
+                  <div class="setting-input-wrap boost-input-wrap">
+                    <!-- BOOST DURATION -->
+                    <input type="text"
+                          readonly
+                          ng-model="boostDuration.input"
+                          class="setting-input hmi-keyboard-input boost-input"
+                          data-keyboard-type="number"
+                          data-keyboard-title="Boost Duration"
+                          data-keyboard-max="8"
+                          placeholder="{{boostDuration.placeholder}}">
+
+                    <span class="setting-unit boost-unit">
+                      S
+                    </span>
+                  </div>
+
+                  <button class="setting-set-btn" ng-click="setBoostDuration()">
+                    SET
+                  </button>
+
+                </div>
+
+                <!-- BOOST INTERVAL -->
+                <div class="setting-row boost-compact-row">
+                
+                  <div class="setting-label">
+                    Boost Interval
+                  </div>
+                
+                  <div class="setting-input-wrap boost-input-wrap">
+                    <input type="text"
+                               readonly
+                               ng-model="boostInterval.input"
+                               class="setting-input hmi-keyboard-input boost-input"
+                               data-keyboard-type="number"
+                               data-keyboard-title="Boost Interval"
+                               data-keyboard-max="8"
+                               placeholder="{{boostInterval.placeholder}}">
+                
+                    <span class="setting-unit boost-unit">s</span>
+                  </div>
+                
+                  <button class="setting-set-btn"
+                            ng-click="setBoostInterval()">
+                        SET
+                    </button>
+                
+                </div>
+                
+                <!-- BOOST MIN FREQUENCY -->
+                <div class="setting-row boost-compact-row">
+                
+                  <div class="setting-label">
+                    Boost Min Frequency
+                  </div>
+                
+                  <div class="setting-input-wrap boost-input-wrap">
+                    <input type="text"
+                               readonly
+                               ng-model="boostMinFrequency.input"
+                               class="setting-input hmi-keyboard-input boost-input"
+                               data-keyboard-type="number"
+                               data-keyboard-title="Boost Min Frequency"
+                               data-keyboard-max="8"
+                               placeholder="{{boostMinFrequency.placeholder}}">
+                
+                    <span class="setting-unit boost-unit">Hz</span>
+                  </div>
+                
+                  <button class="setting-set-btn"
+                            ng-click="setBoostMinFrequency()">
+                        SET
+                    </button>
+                
+                </div>
+                
+                <!-- BOOST MAX FREQUENCY -->
+                <div class="setting-row boost-compact-row">
+                
+                  <div class="setting-label">
+                    Boost Max Frequency
+                  </div>
+                
+                  <div class="setting-input-wrap boost-input-wrap">
+                    <input type="text"
+                               readonly
+                               ng-model="boostMaxFrequency.input"
+                               class="setting-input hmi-keyboard-input boost-input"
+                               data-keyboard-type="number"
+                               data-keyboard-title="Boost Max Frequency"
+                               data-keyboard-max="8"
+                               placeholder="{{boostMaxFrequency.placeholder}}">
+                
+                    <span class="setting-unit boost-unit">Hz</span>
+                  </div>
+                
+                  <button class="setting-set-btn"
+                            ng-click="setBoostMaxFrequency()">
+                        SET
+                    </button>
+                
+                </div>
+
+                <!-- BOOST STATUS -->
+                <div class="auto-start-row boost-status-compact">
+
+                  <div class="auto-start-label">
+                    Boost Status
+                  </div>
+
+                  <button class="auto-start-switch-btn"
+                          ng-class="data.boostEnabled ? 'auto-enabled' : 'auto-disabled'"
+                          ng-click="toggleBoostStatus()">
+
+                    <span class="auto-start-text">
+                      {{data.boostEnabled ? 'Enabled' : 'Disabled'}}
+                    </span>
+
+                    <span class="auto-switch">
+                      <span class="auto-switch-dot"></span>
+                    </span>
+
+                  </button>
+
+                </div>
+
+                <!-- FORCE BOOST -->
+                <button class="force-boost-btn compact-force-boost-btn"
+                        ng-click="forceBoost()">
+                  FORCE BOOST
+                </button>
+
+              </div>
+            </div>
+
+          
+          <!-- ================= STATIC IP SETTINGS =================
+          <div class="system-card static-ip-card"
+              ng-class="{'accordion-closed': !accordion.staticIp}">
+
+            <div class="accordion-header" ng-click="toggleAccordion('staticIp')">
+              <span>SETTINGS IP STATIC</span>
+              <span class="accordion-arrow" ng-class="{'arrow-open': accordion.staticIp}"></span>
+            </div>
+
+            <div class="accordion-body static-ip-body" ng-show="accordion.staticIp">
+
+              <div class="static-ip-row"
+                  ng-repeat="rtu in networkRtus track by rtu.id">
+
+                <div class="static-ip-name">
+                  {{rtu.name}}
+                </div>
+
+                <button class="static-ip-set-btn"
+                        ng-click="openStaticIpModal(rtu, $event)">
+                  SET
+                </button>
+
+              </div>
+
+            </div>
+
+          </div> -->
+
+          <!-- ================= BUTTON FUNCTION SETTINGS ================= -->
+          <div class="system-card button-function-card" ng-class="{'accordion-closed': !accordion.buttonFunction}">
+          
+            <div class="accordion-header" ng-click="toggleAccordion('buttonFunction')">
+              <span>BUTTON FUNCTION SETTINGS</span>
+              <span class="accordion-arrow" ng-class="{'arrow-open': accordion.buttonFunction}"></span>
+            </div>
+          
+            <div class="accordion-body button-function-body" ng-show="accordion.buttonFunction">
+          
+              <div class="setting-row button-function-row" ng-repeat="item in buttonFunctionSettings track by item.key">
+          
+                <div class="setting-label">
+                  {{item.label}}
+                </div>
+          
+                <div class="setting-input-wrap">
+          
+                  <select class="setting-input setting-select button-function-select"
+                          ng-model="item.input"
+                          ng-options="opt.value as opt.label for opt in item.options"
+                          ng-focus="lockButtonFunctionEdit(item)"
+                          ng-mousedown="lockButtonFunctionEdit(item)"
+                          ng-touchstart="lockButtonFunctionEdit(item)"
+                          ng-change="lockButtonFunctionEdit(item)">
+                    <option value="">Select</option>
+                  </select>
+          
+                </div>
+          
+                <button class="setting-set-btn"
+                        ng-click="setButtonFunctionSetting(item)">
+                  SET
+                </button>
+          
+              </div>
+          
+            </div>
+          
+          </div>
+
+          <!-- RTU CONTROL -->
+          <div class="system-card rtu-control-card">
+
+            <div class="accordion-header">
+              <span>RTU CONTROL</span>
+              <span class="accordion-arrow arrow-open"></span>
+            </div>
+
+            <div class="rtu-control-body">
+
+              <button class="rtu-control-btn rtu-restart-btn"
+                      ng-click="restartServiceRtu()">
+                RESTART SERVICE RTU
+              </button>
+
+              <button class="rtu-control-btn rtu-stop-btn"
+                      ng-click="stopServiceRtu()">
+                STOP SERVICE RTU
+              </button>
+
+              <button class="rtu-control-btn rtu-reboot-btn"
+                      ng-click="rebootRtu()">
+                REBOOT RTU
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- RIGHT AREA -->
+        <div class="system-right">
+
+            <div class="system-card system-info-card">
+
+                <div class="info-card-title">
+                    INFORMATION
+                </div>
+
+                <div class="system-info-list">
+
+                    <!-- SYSTEM PANEL -->
+                    <div class="info-accordion">
+
+                        <div class="info-accordion-header" ng-click="toggleInfoAccordion('systemPanel')">
+                            <span>SYSTEM PANEL</span>
+                            <span class="accordion-arrow" ng-class="{'arrow-open': infoAccordion.systemPanel}"></span>
+                        </div>
+
+                        <div class="info-accordion-body" ng-show="infoAccordion.systemPanel">
+                            <div class="system-info-row" ng-repeat="item in systemPanelInfo track by item.key">
+                                <div class="system-info-label">{{item.label}}</div>
+                                <div class="system-info-value">{{item.value}} {{item.unit}}</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- SYSTEM RTU -->
+                    <div class="info-accordion">
+
+                        <div class="info-accordion-header" ng-click="toggleInfoAccordion('systemRtu')">
+                            <span>SYSTEM RTU</span>
+                            <span class="accordion-arrow" ng-class="{'arrow-open': infoAccordion.systemRtu}"></span>
+                        </div>
+
+                        <div class="info-accordion-body" ng-show="infoAccordion.systemRtu">
+                            <div class="system-info-row" ng-repeat="item in systemRtuInfo track by item.key">
+                                <div class="system-info-label">{{item.label}}</div>
+                                <div class="system-info-value">{{item.value}} {{item.unit}}</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- STEPPING PUMP -->
+                    <div class="info-accordion">
+
+                        <div class="info-accordion-header" ng-click="toggleInfoAccordion('steppingPump')">
+                            <span>STEPPING PUMP</span>
+                            <span class="accordion-arrow" ng-class="{'arrow-open': infoAccordion.steppingPump}"></span>
+                        </div>
+
+                        <div class="info-accordion-body" ng-show="infoAccordion.steppingPump">
+                            <div class="system-info-row" ng-repeat="item in steppingPumpInfo track by item.key">
+                                <div class="system-info-label">{{item.label}}</div>
+                                <div class="system-info-value">{{item.value}} {{item.unit}}</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- BOOST PUMP -->
+                    <div class="info-accordion">
+
+                        <div class="info-accordion-header" ng-click="toggleInfoAccordion('boostPump')">
+                            <span>BOOST PUMP</span>
+                            <span class="accordion-arrow" ng-class="{'arrow-open': infoAccordion.boostPump}"></span>
+                        </div>
+
+                        <div class="info-accordion-body" ng-show="infoAccordion.boostPump">
+                            <div class="system-info-row" ng-repeat="item in boostPumpInfo track by item.key">
+                                <div class="system-info-label">{{item.label}}</div>
+                                <div class="system-info-value">{{item.value}} {{item.unit}}</div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- BUTTON FUNCTION -->
+                    <div class="info-accordion">
+                    
+                      <div class="info-accordion-header" ng-click="toggleInfoAccordion('buttonFunction')">
+                        <span>BUTTON FUNCTION</span>
+                        <span class="accordion-arrow" ng-class="{'arrow-open': infoAccordion.buttonFunction}"></span>
+                      </div>
+                    
+                      <div class="info-accordion-body" ng-show="infoAccordion.buttonFunction">
+                        <div class="system-info-row" ng-repeat="item in buttonFunctionInfo track by item.key">
+                    
+                          <div class="system-info-label">
+                            {{item.label}}
+                          </div>
+                    
+                          <div class="system-info-value">
+                            {{item.value}} {{item.unit}}
+                          </div>
+                    
+                        </div>
+                      </div>
+                    
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    (function(scope) {
+
+  var systemClockTimer = null;
+
+  scope.initSystemPage = function() {
+    scope.data = {
+      PumpSite: "-",
+      time: "--:--:--",
+      date: "--/--/----",
+      connection: {
+        quality: "offline",
+        onlineText: "OFFLINE"
+      }
+    };
+
+    scope.accordion = {
+      systemPanel: true,
+      systemRtu: true,
+      steppingPump: false,
+      boostPump: false,
+      buttonFunction: true,
+      staticIp: true
+    };
+
+    scope.infoAccordion = {
+      systemPanel: true,
+      systemRtu: true,
+      steppingPump: false,
+      buttonFunction: true,
+      boostPump: false
+    };
+
+    scope.data.autoStartEnabled = null;
+    scope.data.isAutoMode = null;
+
+    // Sistem per-field: pilihan user pada keempat dropdown tidak boleh
+    // ditimpa stream BE. Nilai BE tetap disimpan terpisah dan tampil pada
+    // INFORMATION; edit dilepas saat BE mengirim nilai yang dipilih via SET.
+    scope.systemPanelEditState = {};
+    scope.systemPanelFromBE = {};
+
+    scope.systemPanelSettings = [
+      {
+        key: "system_type", label: "System Type", input: "", unit: "", inputType: "dropdown",
+        options: [
+          { label: "Booster", value: "Booster" },
+          { label: "Submersible", value: "Submersible" },
+          { label: "Transfer", value: "Transfer" },
+          { label: "Dosing", value: "Dosing" }
+        ]
+      },
+      {
+        key: "pump_control_count", label: "Pump In Control", input: "", unit: "", inputType: "dropdown",
+        options: [
+          { label: "1", value: 1 },
+          { label: "2", value: 2 },
+          { label: "3", value: 3 },
+          { label: "4", value: 4 }
+        ]
+      },
+      {
+        key: "panel_type",
+        label: "Panel Type",
+        input: "",
+        unit: "",
+        inputType: "dropdown",
+        options: [
+          { label: "Inverter", value: 1 },
+          { label: "DOL", value: 2 },
+          { label: "Star Delta", value: 3 }
+        ]
+      },
+      
+      {
+        key: "opr_mode",
+        label: "Operational Mode",
+        input: "",
+        unit: "",
+        inputType: "dropdown",
+        options: [
+          { label: "RTU", value: "RTU" },
+          { label: "Logger", value: "Logger" }
+        ]
+      }
+
+    ];
+
+    scope.networkRtus = [
+      {
+        id: 1,
+        name: "RTU Master",
+        role: "master",
+        interface: "eth0",
+        default_ip: "192.0.2.100",
+        current_ip: "192.0.2.100",
+        subnet: "24",
+        gateway: "192.0.2.1",
+        dns: "8.8.8.8"
+      },
+      {
+        id: 2,
+        name: "RTU Slave 1",
+        role: "slave",
+        interface: "eth0",
+        default_ip: "192.0.2.101",
+        current_ip: "192.0.2.101",
+        subnet: "24",
+        gateway: "192.0.2.1",
+        dns: "8.8.8.8"
+      },
+      {
+        id: 3,
+        name: "RTU Slave 2",
+        role: "slave",
+        interface: "eth0",
+        default_ip: "192.0.2.102",
+        current_ip: "192.0.2.102",
+        subnet: "24",
+        gateway: "192.0.2.1",
+        dns: "8.8.8.8"
+      },
+      {
+        id: 4,
+        name: "RTU Slave 3",
+        role: "slave",
+        interface: "eth0",
+        default_ip: "192.0.2.103",
+        current_ip: "192.0.2.103",
+        subnet: "24",
+        gateway: "192.0.2.1",
+        dns: "8.8.8.8"
+      },
+      {
+        id: 5,
+        name: "RTU Slave 4",
+        role: "slave",
+        interface: "eth0",
+        default_ip: "192.0.2.104",
+        current_ip: "192.0.2.104",
+        subnet: "24",
+        gateway: "192.0.2.1",
+        dns: "8.8.8.8"
+      }
+    ];
+
+   scope.systemRtuSettings = [
+      {
+        key: "rtu_number",
+        label: "RTU Number",
+        input: "",
+        placeholder: "RTU-MF-099",
+        unit: "",
+        inputType: "text",
+        maxLength: 30
+      },
+      {
+        key: "company_name",
+        label: "Company Name",
+        input: "",
+        placeholder: "BSS",
+        unit: "",
+        inputType: "text",
+        maxLength: 40
+      },
+      {
+        key: "pump_site",
+        label: "Pump Site",
+        input: "",
+        placeholder: "BUNG TOMO",
+        unit: "",
+        inputType: "text",
+        maxLength: 40
+      }
+    ];
+
+    scope.data.steppingEnabled = true;
+
+    scope.steppingInterval = {
+      input: "",
+      currentLabel: "Select",
+      unit: "",
+      options: [
+        { label: "60 Minutes", value: 60 },
+        { label: "30 Minutes", value: 30 },
+        { label: "10 Minutes", value: 10 },
+        { label: "5 Minutes", value: 5 }
+      ]
+    };
+
+    scope.data.boostEnabled = true;
+
+    scope.boostPressure = {
+      input: "",
+      placeholder: "Ex: 0.1",
+      unit: "Bar"
+    };
+
+    scope.boostDuration = {
+      input: "",
+      placeholder: "Ex: 1",
+      unit: "S"
+    };
+
+    // ======================================================
+    // BOOST INTERVAL
+    // UI: Second (s)
+    // BE: Nanoseconds (ns)
+    // ======================================================
+    
+    scope.boostInterval = {
+      input: "",
+      placeholder: "Ex: 35",
+      unit: "s"
+    };
+    
+    // ======================================================
+    // BOOST MIN FREQUENCY
+    // UI: Hz
+    // BE: Percentage (%)
+    // ======================================================
+    
+    scope.boostMinFrequency = {
+      input: "",
+      placeholder: "Ex: 35",
+      unit: "Hz"
+    };
+    
+    // ======================================================
+    // BOOST MAX FREQUENCY
+    // UI: Hz
+    // BE: Percentage (%)
+    // ======================================================
+    
+    scope.boostMaxFrequency = {
+      input: "",
+      placeholder: "Ex: 45",
+      unit: "Hz"
+    };
+
+    scope.systemPanelInfo = [
+      { key: "system_type", label: "System Type", value: "-", unit: "" },
+      { key: "pump_in_control", label: "Pump In Control", value: "-", unit: "" },
+      { key: "panel_type", label: "Panel Type", value: "-", unit: "" },
+      { key: "opr_mode", label: "Operational Mode", value: "-", unit: ""},
+      { key: "auto_start_on_startup", label: "Auto-Start On Startup", value: "-", unit: "" }
+    ];
+
+    scope.systemRtuInfo = [
+      { key: "rtu_number", label: "RTU Number", value: "-", unit: ""},
+      { key: "company_name", label: "Company Name", value: "-", unit: ""},
+      { key: "pump_site", label: "Pump Site", value: "-", unit: "" }
+    ];
+
+    scope.steppingPumpInfo = [
+      {
+        key: "stepping_status",
+        label: "Stepping Status",
+        value: "-",
+        unit: ""
+      },
+      {
+        key: "stepping_interval",
+        label: "Stepping Interval",
+        value: "-",
+        unit: "Minutes"
+      }
+    ];
+
+    scope.boostPumpInfo = [
+      {
+        key: "boost_status",
+        label: "Boost Status",
+        value: "-",
+        unit: ""
+      },
+      {
+        key: "boost_interval",
+        label: "Boost Interval",
+        value: "-",
+        unit: "s"
+      },
+      {
+        key: "boost_pressure",
+        label: "Boost Pressure",
+        value: "-",
+        unit: "Bar"
+      },
+      {
+      key: "boost_min_frequency",
+      label: "Boost Min Frequency",
+      value: "-",
+      unit: "Hz"
+      },
+      {
+      key: "boost_max_frequency",
+      label: "Boost Max Frequency",
+      value: "-",
+      unit: "Hz"
+      }
+    ];
+
+    // ======================================================
+    // BUTTON FUNCTION SETTINGS
+    // ======================================================
+    
+    scope.buttonFunctionSettings = [
+      {
+        key: "auto_button_function",
+        label: "Auto Button",
+        input: 1,
+        unit: "",
+        inputType: "dropdown",
+        options: [
+          {
+            label: "Constant Pressure",
+            value: 1
+          },
+          {
+            label: "Pressure Management",
+            value: 2
+          },
+          {
+            label: "Timer Control",
+            value: 3
+          }
+          // {
+          //   label: "Manual RTU Control",
+          //   value: 4
+          // },
+          // {
+          //   label: "Manual Single Inverter Control",
+          //   value: 5
+          // },
+          // {
+          //   label: "Manual Inverter Control",
+          //   value: 6
+          // },
+          // {
+          //   label: "Auto On DOL/StarDelta",
+          //   value: 7
+          // },
+          // {
+          //   label: "Manual on DOL/StarDelta",
+          //   value: 8
+          // }
+        ]
+      }
+    ];
+    
+    scope.buttonFunctionInfo = [
+      {
+        key: "auto_button_function",
+        label: "Auto Button",
+        value: "-",
+        unit: ""
+      }
+    ];
+    
+    scope.buttonFunctionEditing = {};
+    scope.buttonFunctionEditTimer = {};
+    
+    startClock();
+  };
+
+  function startClock() {
+    if (systemClockTimer) clearInterval(systemClockTimer);
+
+    systemClockTimer = setInterval(function() {
+      var now = new Date();
+
+      var hh = String(now.getHours()).padStart(2, "0");
+      var mm = String(now.getMinutes()).padStart(2, "0");
+      var ss = String(now.getSeconds()).padStart(2, "0");
+
+      var dd = String(now.getDate()).padStart(2, "0");
+      var mo = String(now.getMonth() + 1).padStart(2, "0");
+      var yy = now.getFullYear();
+
+      scope.data.time = hh + ":" + mm + ":" + ss;
+      scope.data.date = dd + "/" + mo + "/" + yy;
+
+      scope.$applyAsync();
+    }, 1000);
+  }
+
+  scope.toggleAccordion = function(key) {
+    scope.accordion[key] = !scope.accordion[key];
+    scope.$applyAsync();
+  };
+
+  scope.toggleInfoAccordion = function(key) {
+    scope.infoAccordion[key] = !scope.infoAccordion[key];
+    scope.$applyAsync();
+  };
+
+  scope.setSystemPanelSetting = function(item) {
+    if (!item || !item.key) return;
+
+    // Cegah kondisi invalid tersimpan sebagai pending.
+    var selected = normalizeSystemPanelValue(item.key, item.input);
+    if (selected !== null) {
+      var edit = scope.systemPanelEditState[item.key] || {};
+      edit.editing = true;
+      edit.submitted = selected;
+      scope.systemPanelEditState[item.key] = edit;
+    }
+
+    // Tetap pakai confirm_request YES/NO yang sudah ada.
+    sendSystemSettingConfirm("system_panel_setting_confirmed", item);
+  };
+
+  scope.setSystemRtuSetting = function(item) {
+    sendSystemSettingConfirm("system_rtu_setting_confirmed", item);
+  };
+
+  scope.setSteppingPumpSetting = function(item) {
+    sendSystemSettingConfirm("stepping_pump_setting_confirmed", item);
+  };
+
+  scope.setBoostPumpSetting = function(item) {
+    sendSystemSettingConfirm("boost_pump_setting_confirmed", item);
+  };
+
+  // ======================================================
+  // SET AUTO BUTTON FUNCTION
+  // CHECK IsAutoMode DARI BE
+  // ======================================================
+  
+  scope.setButtonFunctionSetting = function(item) {
+  
+    if (!item || item.key !== "auto_button_function") {
+      return;
+    }
+    
+    // AUTO MODE AKTIF
+    if (scope.data.isAutoMode === true) {
+    
+      scope.send({
+        topic: "auto_button_manual_required",
+        payload: {
+          title: "AUTO MODE ACTIVE",
+          message: "Set mode ke Manual terlebih dahulu sebelum mengubah Auto Button.",
+          cancelText: "CANCEL",
+
+          // ID unik untuk setiap klik SET
+          eventId: "auto-button-" +
+          Date.now() + "-" +
+          Math.random().toString(36).slice(2)
+        }
+      });
+      
+      return;
+    }
+    
+    // STATUS BELUM TERSEDIA
+    if (scope.data.isAutoMode !== false) {
+    
+      scope.send({
+        topic: "notif_request",
+        payload: {
+          type: "error",
+          message: "Status Pump Mode belum tersedia"
+        }
+      });
+      
+      return;
+    }
+    
+    // MANUAL MODE - LANJUTKAN SET
+    scope.lockButtonFunctionEdit(item);
+    
+    sendSystemSettingConfirm(
+      "button_function_setting_confirmed",
+        item
+      );
+    };
+
+  scope.toggleAutoStart = function() {
+    var targetState = !scope.data.autoStartEnabled;
+    
+    scope.send({
+      topic: "confirm_request",
+      payload: {
+        title: "Auto-Start On Startup",
+        message: "Apakah Anda yakin ingin " + (targetState ? "mengaktifkan" : "menonaktifkan") + " Auto-Start On Startup?",
+        confirmText: "YES",
+        cancelText: "NO",
+        nextTopic: "system_panel_setting_confirmed",
+        nextPayload: {
+          key: "auto_start",
+          label: "Auto-Start On Startup",
+          value: targetState,
+          displayValue: targetState ? "Enabled" : "Disabled"
+        }
+      }
+    });
+    
+    scope.$applyAsync();
+  };
+
+    scope.setSteppingInterval = function() {
+      var rawValue = scope.steppingInterval.input;
+      var minutes = Number(rawValue);
+
+      if (rawValue === "" || rawValue === null || rawValue === undefined || isNaN(minutes)) {
+        scope.send({
+          topic: "notif_request",
+          payload: {
+            type: "error",
+            message: "Stepping Interval wajib dipilih"
+          }
+        });
+        return;
+      }
+
+      if (minutes <= 0) { 
+        scope.send({ 
+          topic: "notif_request" , 
+          payload: { 
+            type: "error" ,
+            message: "Stepping Interval tidak valid" 
+          } 
+        }); 
+        return; 
+      } 
+      
+      scope.send({ 
+        topic: "confirm_request" , 
+        payload: {
+          title: "Set Stepping Interval" , 
+          message: "Apakah Anda yakin ingin mengubah Stepping Interval menjadi " + minutes + " Minutes?" , 
+          confirmText: "YES" , 
+          cancelText: "NO" , 
+          nextTopic: "stepping_pump_setting_confirmed" , 
+          nextPayload: {
+            key: "stepping_interval" , 
+            label: "Stepping Interval" , 
+            value: minutes, 
+            displayValue: minutes + " Minutes" ,
+            unit: "Minutes" 
+          } 
+        } 
+      }); 
+      
+      scope.$applyAsync(); 
+    };
+
+      scope.toggleSteppingStatus = function() {
+        var targetState = !scope.data.steppingEnabled;
+
+        scope.send({
+          topic: "confirm_request",
+          payload: {
+            title: "Stepping Status",
+            message: "Apakah Anda yakin ingin " +
+                    (targetState ? "mengaktifkan" : "menonaktifkan") +
+                    " Stepping Status?",
+            confirmText: "YES",
+            cancelText: "NO",
+            nextTopic: "stepping_pump_setting_confirmed",
+            nextPayload: {
+              key: "stepping_enable",
+              label: "Stepping Status",
+              value: targetState,
+              displayValue: targetState ? "Enabled" : "Disabled"
+            }
+          }
+        });
+
+        scope.$applyAsync();
+  };
+
+  scope.forceStepping = function() {
+    scope.send({
+      topic: "confirm_request",
+      payload: {
+        title: "Force Stepping",
+        message: "Apakah Anda yakin ingin menjalankan Force Stepping?",
+        confirmText: "YES",
+        cancelText: "NO",
+        nextTopic: "force_stepping_confirmed",
+        nextPayload: {
+          key: "force_stepping",
+          value: "stepping"
+        }
+      }
+    });
+
+    scope.$applyAsync();
+  };
+
+
+  scope.setBoostPressure = function() {
+    sendBoostSettingConfirm(
+      "boost_pressure",
+      "Boost Bar",
+      scope.boostPressure.input,
+      "Bar"
+    );
+  };
+
+  scope.setBoostDuration = function() {
+    sendBoostSettingConfirm(
+      "boost_duration",
+      "Boost Duration",
+      scope.boostDuration.input,
+      "S"
+    );
+  };
+
+  
+// ======================================================
+// SET BOOST INTERVAL
+// ======================================================
+
+scope.setBoostInterval = function() {
+    sendBoostSettingConfirm(
+        "boost_interval",
+        "Boost Interval",
+        scope.boostInterval.input,
+        "s"
+    );
+};
+
+// ======================================================
+// SET BOOST MIN FREQUENCY
+// ======================================================
+
+scope.setBoostMinFrequency = function() {
+    sendBoostSettingConfirm(
+        "boost_min_frequency",
+        "Boost Min Frequency",
+        scope.boostMinFrequency.input,
+        "Hz"
+    );
+};
+
+// ======================================================
+// SET BOOST MAX FREQUENCY
+// ======================================================
+
+scope.setBoostMaxFrequency = function() {
+    sendBoostSettingConfirm(
+        "boost_max_frequency",
+        "Boost Max Frequency",
+        scope.boostMaxFrequency.input,
+        "Hz"
+    );
+};
+
+
+  scope.toggleBoostStatus = function() {
+    var targetState = !scope.data.boostEnabled;
+
+    scope.send({
+      topic: "confirm_request",
+      payload: {
+        title: "Boost Status",
+        message: "Apakah Anda yakin ingin " +
+                (targetState ? "mengaktifkan" : "menonaktifkan") +
+                " Boost Status?",
+        confirmText: "YES",
+        cancelText: "NO",
+        nextTopic: "boost_pump_setting_confirmed",
+        nextPayload: {
+          key: "boost_enable",
+          label: "Boost Status",
+          value: targetState,
+          displayValue: targetState ? "Enabled" : "Disabled"
+        }
+      }
+    });
+
+    scope.$applyAsync();
+  };
+
+  scope.forceBoost = function() {
+    scope.send({
+      topic: "confirm_request",
+      payload: {
+        title: "Force Boost",
+        message: "Apakah Anda yakin ingin menjalankan Force Boost?",
+        confirmText: "YES",
+        cancelText: "NO",
+        nextTopic: "force_boost_confirmed",
+        nextPayload: {
+          key: "force_boost",
+          value: "boost"
+        }
+      }
+    });
+
+    scope.$applyAsync();
+  };
+
+
+  function sendBoostSettingConfirm(key, label, rawValue, unit) {
+
+      var value = Number(rawValue);
+
+      // ==================================================
+      // VALIDASI INPUT
+      // ==================================================
+
+      if (
+          rawValue === "" ||
+          rawValue === null ||
+          rawValue === undefined ||
+          !Number.isFinite(value)
+      ) {
+
+          scope.send({
+              topic: "notif_request",
+              payload: {
+                  type: "error",
+                  message: label + " wajib diisi dengan angka"
+              }
+          });
+
+          return;
+      }
+
+      // ==================================================
+      // VALIDASI BOOST MIN / MAX FREQUENCY
+      // ==================================================
+
+      if (
+          key === "boost_min_frequency" ||
+          key === "boost_max_frequency"
+      ) {
+
+          if (value < 0 || value > 50) {
+
+              scope.send({
+                  topic: "notif_request",
+                  payload: {
+                      type: "error",
+                      message: label +
+                          " harus di antara 0 - 50 Hz"
+                  }
+              });
+
+              return;
+          }
+
+      } else {
+
+          // Untuk Boost Bar, Duration, Interval
+          // nilai harus lebih dari 0
+
+          if (value <= 0) {
+
+              scope.send({
+                  topic: "notif_request",
+                  payload: {
+                      type: "error",
+                      message: label + " harus lebih dari 0"
+                  }
+              });
+
+              return;
+          }
+      }
+
+      // ==================================================
+      // CONFIRM REQUEST
+      // ==================================================
+
+      scope.send({
+          topic: "confirm_request",
+          payload: {
+
+              title: "Set " + label,
+
+              message:
+                  "Apakah Anda yakin ingin mengubah " +
+                  label + " menjadi " +
+                  value + " " + unit + "?",
+
+              confirmText: "YES",
+              cancelText: "NO",
+
+              nextTopic: "boost_pump_setting_confirmed",
+
+              nextPayload: {
+                  key: key,
+                  label: label,
+                  value: value,
+                  unit: unit,
+                  displayValue: value,
+                  displayUnit: unit
+              }
+          }
+      });
+
+      scope.$applyAsync();
+  }
+
+  
+  function getDropdownLabel(item, value) {
+    if (!Array.isArray(item.options)) {
+      return String(value);
+    }
+
+    var selected = item.options.find(function(opt) {
+      return String(opt.value) === String(value);
+    });
+
+    if (!selected) {
+      return String(value);
+    }
+
+    return selected.label;
+  }
+
+  // ======================================================
+  // BUTTON FUNCTION HELPER
+  // ======================================================
+
+  function normalizeAutoButtonFunctionId(value) {
+    if (value === undefined || value === null || value === "") {
+      return null;
+    }
+
+    var text = String(value).trim().toUpperCase();
+
+    // Support angka
+    if (text === "1") return 1;
+    if (text === "2") return 2;
+    if (text === "3") return 3;
+    if (text === "4") return 4;
+    if (text === "5") return 5;
+    if (text === "6") return 6;
+    if (text === "7") return 7;
+    if (text === "8") return 8;
+
+    // Support code / label lama
+    if (text === "APC" || text.indexOf("CONSTANT PRESSURE") !== -1) return 1;
+    if (text === "ASC" || text.indexOf("PRESSURE MANAGEMENT") !== -1) return 2;
+    if (text === "ATC" || text.indexOf("TIMER CONTROL") !== -1) return 3;
+
+    // Support label baru
+    if (text.indexOf("MANUAL RTU CONTROL") !== -1) return 4;
+    if (text.indexOf("MANUAL SINGLE INVERTER CONTROL") !== -1) return 5;
+    if (text.indexOf("MANUAL INVERTER CONTROL") !== -1) return 6;
+    if (text.indexOf("AUTO ON DOL") !== -1 || text.indexOf("AUTO_DOL_STARDELTA") !== -1) return 7;
+    if (text.indexOf("MANUAL ON DOL") !== -1 || text.indexOf("MANUAL_DOL_STARDELTA") !== -1) return 8;
+
+    return null;
+  }
+
+  function autoButtonFunctionLabel(value) {
+    var id = normalizeAutoButtonFunctionId(value);
+
+    if (id === 1) return "Constant Pressure";
+    if (id === 2) return "Pressure Management";
+    if (id === 3) return "Timer Control";
+    if (id === 4) return "Manual RTU Control";
+    if (id === 5) return "Manual Single Inverter Control";
+    if (id === 6) return "Manual Inverter Control";
+    if (id === 7) return "Auto On DOL/StarDelta";
+    if (id === 8) return "Manual on DOL/StarDelta";
+
+    return "-";
+  }
+
+  scope.lockButtonFunctionEdit = function(item) {
+    if (!item || !item.key) return;
+
+    var key = item.key;
+
+    scope.buttonFunctionEditing[key] = true;
+
+    if (scope.buttonFunctionEditTimer[key]) {
+      clearTimeout(scope.buttonFunctionEditTimer[key]);
+    }
+
+    // Jika user tidak klik SET, lock otomatis lepas setelah 15 detik
+    scope.buttonFunctionEditTimer[key] = setTimeout(function() {
+      scope.buttonFunctionEditing[key] = false;
+      scope.$applyAsync();
+    }, 15000);
+  };
+
+  scope.unlockButtonFunctionEdit = function(key) {
+    if (!key) return;
+
+    scope.buttonFunctionEditing[key] = false;
+
+    if (scope.buttonFunctionEditTimer[key]) {
+      clearTimeout(scope.buttonFunctionEditTimer[key]);
+      delete scope.buttonFunctionEditTimer[key];
+    }
+
+    scope.$applyAsync();
+  };
+
+  function sendSystemSettingConfirm(nextTopic, item) {
+    var rawValue = item.input;
+
+    if (rawValue === "" || rawValue === null || rawValue === undefined) {
+      scope.send({
+        topic: "notif_request",
+        payload: {
+          type: "error",
+          message: item.label + " wajib diisi"
+        }
+      });
+      return;
+    }
+
+    var value = rawValue;
+
+    if (item.inputType === "number") {
+      value = Number(rawValue);
+
+      if (isNaN(value)) {
+        scope.send({
+          topic: "notif_request",
+          payload: {
+            type: "error",
+            message: item.label + " harus berupa angka"
+          }
+        });
+        return;
+      }
+    }
+
+    var displayValue = item.inputType === "dropdown"
+      ? getDropdownLabel(item, value)
+      : String(value);
+
+    scope.send({
+      topic: "confirm_request",
+      payload: {
+        title: "Set " + item.label,
+        message: "Apakah Anda yakin ingin mengubah " + item.label + " menjadi " + displayValue + " " + item.unit + "?",
+        confirmText: "YES",
+        cancelText: "NO",
+        nextTopic: nextTopic,
+        nextPayload: {
+          key: item.key,
+          label: item.label,
+          value: value,
+          displayValue: displayValue,
+          unit: item.unit
+        }
+      }
+    });
+
+    scope.$applyAsync();
+  }
+
+  scope.startServiceRtu = function() {
+    scope.send({
+      topic: "confirm_request",
+      payload: {
+        title: "Start Service RTU",
+        message: "Apakah Anda yakin ingin menjalankan kembali service RTU?",
+        confirmText: "YES",
+        cancelText: "NO",
+        nextTopic: "rtu_control_confirmed",
+        nextPayload: {
+          key: "start_service_rtu",
+          label: "Start Service RTU",
+          command: "start_service"
+        }
+      }
+    });
+
+    scope.$applyAsync();
+  };
+
+  scope.restartServiceRtu = function() {
+    scope.send({
+      topic: "confirm_request",
+      payload: {
+        title: "Restart Service RTU",
+        message: "Apakah Anda yakin ingin restart service RTU? Service akan mati sebentar lalu hidup kembali.",
+        confirmText: "YES",
+        cancelText: "NO",
+        nextTopic: "rtu_control_confirmed",
+        nextPayload: {
+          key: "restart_service_rtu",
+          label: "Restart Service RTU",
+          command: "restart_service"
+        }
+      }
+    });
+
+    scope.$applyAsync();
+  };
+
+  scope.stopServiceRtu = function() {
+    scope.send({
+      topic: "confirm_request",
+      payload: {
+        title: "Stop Service RTU",
+        message: "PERHATIAN: Service RTU akan dihentikan dan tidak akan hidup kembali otomatis. Lanjutkan?",
+        confirmText: "YES",
+        cancelText: "NO",
+        nextTopic: "rtu_control_confirmed",
+        nextPayload: {
+          key: "stop_service_rtu",
+          label: "Stop Service RTU",
+          command: "stop_service"
+        }
+      }
+    });
+
+    scope.$applyAsync();
+  };
+
+  scope.rebootRtu = function() {
+    scope.send({
+      topic: "confirm_request",
+      payload: {
+        title: "Reboot RTU",
+        message: "PERHATIAN: Seluruh RTU akan restart. Koneksi dan service akan terputus sementara. Lanjutkan?",
+        confirmText: "YES",
+        cancelText: "NO",
+        nextTopic: "rtu_control_confirmed",
+        nextPayload: {
+          key: "reboot_rtu",
+          label: "Reboot RTU",
+          command: "reboot_rtu"
+        }
+      }
+    });
+
+    scope.$applyAsync();
+  };
+
+  function updateListByKey(targetList, sourceList) {
+    if (!Array.isArray(targetList)) {
+      targetList = [];
+    }
+
+    if (!Array.isArray(sourceList)) {
+      return targetList;
+    }
+
+    sourceList.forEach(function(newItem) {
+      if (!newItem || !newItem.key) return;
+
+      var found = targetList.find(function(oldItem) {
+        return oldItem.key === newItem.key;
+      });
+
+      if (found) {
+        Object.assign(found, newItem);
+      } else {
+        targetList.push(newItem);
+      }
+    });
+
+    return targetList;
+  }
+
+  // ======================================================
+  // OPEN STATIC IP MODAL - MODAL ADA DI UI TEMPLATE LAIN
+  // ======================================================
+
+  scope.openStaticIpModal = function(rtu, event) {
+    if (event && event.stopPropagation) {
+      event.stopPropagation();
+    }
+
+    if (!rtu) return;
+
+    scope.send({
+      topic: "open_static_ip_modal",
+      payload: {
+        rtu: angular.copy(rtu)
+      }
+    });
+
+    scope.$applyAsync();
+  };
+
+  // ======================================================
+  // LOCK INPUT SYSTEM PANEL (SEMUA 4 DROPDOWN)
+  // ======================================================
+  scope.lockSystemPanelEdit = function(item) {
+    if (!item || !item.key) return;
+    if (["opr_mode", "system_type", "pump_control_count", "panel_type"]
+        .indexOf(item.key) === -1) return;
+
+    scope.systemPanelEditState[item.key] = {
+      editing: true,
+      submitted: null
+    };
+  };
+
+  // Konversi format BE (label / angka) ke nilai <select> yang tepat.
+  function normalizeSystemPanelValue(key, raw) {
+    if (raw === undefined || raw === null || raw === "" || raw === "-") {
+      return null;
+    }
+
+    var name = String(raw).trim().toLowerCase();
+
+    if (key === "opr_mode") {
+      if (name === "rtu") return "RTU";
+      if (name === "logger") return "Logger";
+    }
+
+    if (key === "system_type") {
+      var types = {
+        booster: "Booster", submersible: "Submersible",
+        transfer: "Transfer", dosing: "Dosing"
+      };
+      return types[name] || null;
+    }
+
+    if (key === "pump_control_count") {
+      var count = Number(raw);
+      return Number.isInteger(count) && count >= 1 && count <= 4
+        ? count : null;
+    }
+
+    if (key === "panel_type") {
+      var panel = name.replace(/[\s_-]/g, "");
+      if (panel === "1" || panel === "inverter") return 1;
+      if (panel === "2" || panel === "dol") return 2;
+      if (panel === "3" || panel === "stardelta") return 3;
+    }
+
+    return null;
+  }
+
+  // BE selalu dicatat; dropdown hanya berubah jika tidak sedang diedit.
+  // Setelah BE melaporkan nilai yang sama dengan permintaan SET, lock lepas.
+  function syncSystemPanelFromBE(key, raw) {
+    // Nama field di INFORMATION berbeda dengan nama setting kiri.
+    if (key === "pump_in_control") key = "pump_control_count";
+
+    var value = normalizeSystemPanelValue(key, raw);
+    if (value === null) return;
+
+    scope.systemPanelFromBE[key] = value;
+
+    var dropdown = scope.systemPanelSettings.find(function(setting) {
+      return setting.key === key;
+    });
+    if (!dropdown) return;
+
+    var edit = scope.systemPanelEditState[key];
+
+    if (edit && edit.submitted !== null && edit.submitted === value) {
+      delete scope.systemPanelEditState[key];
+      dropdown.input = value;
+      return;
+    }
+
+    if (edit && edit.editing) return;
+
+    dropdown.input = value;
+  }
+
+  scope.$watch("msg", function(msg) {
+    if (!msg) return;
+
+    if (msg.topic === "internet_status") {
+      var status = msg.payload || {};
+
+      scope.data.connection.onlineText = status.status || "OFFLINE";
+      scope.data.connection.quality = status.quality || "offline";
+
+      scope.$applyAsync();
+      return;
+    }
+
+    
+    // ======================================================
+    // AUTO MODE STATUS DARI BACKEND
+    //
+    // topic: auto_mode_status
+    //
+    // true  = AUTO
+    // false = MANUAL
+    // ======================================================
+
+    if (msg.topic === "auto_mode_status") {
+
+        var payload = msg.payload || {};
+
+        if (typeof payload.isAutoMode === "boolean") {
+
+            scope.data.isAutoMode = payload.isAutoMode;
+
+        } else {
+
+            scope.data.isAutoMode = null;
+
+        }
+
+        scope.$applyAsync();
+        return;
+    }
+
+
+    // ======================================================
+    // NOTIFIKASI AUTO BUTTON - MANUAL REQUIRED
+    // ======================================================
+
+    if (msg.topic === "auto_button_manual_required") {
+
+        scope.autoButtonModeAlert.show = true;
+
+        scope.autoButtonModeAlert.title =
+            (msg.payload && msg.payload.title) ||
+            "AUTO MODE ACTIVE";
+
+        scope.autoButtonModeAlert.message =
+            (msg.payload && msg.payload.message) ||
+            "Set mode ke Manual terlebih dahulu.";
+
+        scope.$applyAsync();
+        return;
+    }
+
+    // ======================================================
+    // BUTTON FUNCTION INFO
+    // KHUSUS UPDATE CARD KANAN INFORMATION SAJA
+    //
+    // topic: button_function_info
+    // Support:
+    // 1. payload array:
+    // [
+    //   { key: "auto_button_function", label: "Auto Button", value: "Constant Pressure (APC)", unit: "" }
+    // ]
+    //
+    // 2. payload object:
+    // {
+    //   autoButtonFunctionId: 1
+    // }
+    // ======================================================
+
+    if (msg.topic === "button_function_info") {
+      var infoPayload = msg.payload || {};
+
+      if (Array.isArray(infoPayload)) {
+        scope.buttonFunctionInfo = updateListByKey(scope.buttonFunctionInfo, infoPayload);
+      } else {
+        var infoId =
+          infoPayload.autoButtonFunctionId !== undefined ? infoPayload.autoButtonFunctionId :
+          infoPayload.auto_button_function !== undefined ? infoPayload.auto_button_function :
+          infoPayload.value !== undefined ? infoPayload.value :
+          "";
+
+        var infoLabel = autoButtonFunctionLabel(infoId);
+
+        scope.buttonFunctionInfo = updateListByKey(scope.buttonFunctionInfo, [
+          {
+            key: "auto_button_function",
+            label: "Auto Button",
+            value: infoLabel,
+            unit: ""
+          }
+        ]);
+      }
+
+      scope.$applyAsync();
+      return;
+    }
+
+
+    // ======================================================
+    // BUTTON FUNCTION SETTING CURRENT
+    // KHUSUS UPDATE DROPDOWN KIRI SAJA
+    //
+    // topic: button_function_setting_current
+    // payload:
+    // {
+    //   autoButtonFunctionId: 1
+    // }
+    // ======================================================
+
+    
+    if (msg.topic === "button_function_setting_current") {
+
+        var settingPayload = msg.payload || {};
+
+        // ==================================================
+        // AMBIL AUTO MODE CONFIG DARI BACKEND
+        // ==================================================
+
+        var rawValue =
+            settingPayload.autoButtonFunctionId !== undefined
+                ? settingPayload.autoButtonFunctionId
+                : settingPayload.AutoModeConfig !== undefined
+                    ? settingPayload.AutoModeConfig
+                    : settingPayload.value;
+
+        var incomingId = normalizeAutoButtonFunctionId(rawValue);
+
+        if (incomingId === null) {
+            scope.$applyAsync();
+            return;
+        }
+
+        // ==================================================
+        // UPDATE CARD INFORMATION SEBELAH KANAN
+        // ==================================================
+
+        var functionName = autoButtonFunctionLabel(incomingId);
+
+        scope.buttonFunctionInfo = updateListByKey(
+            scope.buttonFunctionInfo,
+            [{
+                key: "auto_button_function",
+                label: "Auto Button",
+                value: functionName,
+                unit: ""
+            }]
+        );
+
+        // ==================================================
+        // UPDATE DROPDOWN SETTINGS SEBELAH KIRI
+        // ==================================================
+
+        scope.buttonFunctionSettings.forEach(function(item) {
+
+              if (!item || item.key !== "auto_button_function") {
+                  return;
+              }
+
+              var isEditing =
+                  scope.buttonFunctionEditing &&
+                  scope.buttonFunctionEditing[item.key] === true;
+
+              var currentId = normalizeAutoButtonFunctionId(item.input);
+
+              // Jangan overwrite dropdown ketika sedang diedit
+              if (isEditing && currentId !== incomingId) {
+                  return;
+              }
+
+              item.input = incomingId;
+
+              if (currentId === incomingId) {
+                  scope.unlockButtonFunctionEdit(item.key);
+              }
+          });
+
+          scope.$applyAsync();
+          return;
+    }
+
+
+    // ======================================================
+    // UPDATE STATIC IP CONFIG FROM FILE / FLOW
+    // ======================================================
+
+    if (msg.topic === "static_ip_config") {
+      var config = msg.payload || {};
+
+      if (Array.isArray(config.rtus)) {
+        scope.networkRtus = config.rtus;
+      }
+
+      scope.$applyAsync();
+      return;
+    }
+
+    // ======================================================
+    // UPDATE CURRENT IP AFTER APPLY SUCCESS
+    // ======================================================
+
+    if (msg.topic === "static_ip_apply_status") {
+      var result = msg.payload || {};
+
+      if (result.status === "success" && result.rtu_id && result.new_ip) {
+        scope.networkRtus.forEach(function(rtu) {
+          if (Number(rtu.id) === Number(result.rtu_id)) {
+            rtu.current_ip = result.new_ip;
+            rtu.subnet = result.subnet || rtu.subnet;
+            rtu.gateway = result.gateway || rtu.gateway;
+            rtu.dns = result.dns || rtu.dns;
+          }
+        });
+      }
+
+      scope.$applyAsync();
+      return;
+    }
+
+    if (msg.topic === "pump_site") {
+      var p = msg.payload || {};
+      scope.data.PumpSite = p.PumpSite || msg.payload || "-";
+
+      scope.$applyAsync();
+      return;
+    }
+
+
+    // ======================================================
+    // SYSTEM PANEL INFORMATION
+    // Sync INFORMATION kanan + Auto-Start Switch kiri
+    // ======================================================
+
+
+    if (msg.topic === "system_panel_info") {
+
+        if (Array.isArray(msg.payload)) {
+
+            // ========================================
+            // UPDATE INFORMATION CARD KANAN
+            // ========================================
+
+            scope.systemPanelInfo = updateListByKey(
+                scope.systemPanelInfo,
+                msg.payload
+            );
+
+            msg.payload.forEach(function(item) {
+
+                if (!item || !item.key) return;
+
+                // ====================================
+                // KEEMPAT DROPDOWN: SYNC NILAI AKTUAL BE
+                // ====================================
+                // INFORMATION kanan sudah di-update di atas.
+                // Draft pada SYSTEM PANEL SETTINGS tidak dioverwrite.
+                syncSystemPanelFromBE(item.key, item.value);
+
+                // ====================================
+                // AUTO START ON STARTUP
+                // ====================================
+
+                if (item.key === "auto_start_on_startup") {
+
+                    var status = String(item.value)
+                        .trim()
+                        .toUpperCase();
+
+                    if (
+                        status === "ENABLED" ||
+                        status === "TRUE" ||
+                        status === "1"
+                    ) {
+                        scope.data.autoStartEnabled = true;
+                    }
+
+                    else if (
+                        status === "DISABLED" ||
+                        status === "FALSE" ||
+                        status === "0"
+                    ) {
+                        scope.data.autoStartEnabled = false;
+                    }
+                }
+            });
+        }
+
+        scope.$applyAsync();
+        return;
+    }
+
+
+    if (msg.topic === "system_rtu_info") {
+      if (Array.isArray(msg.payload)) {
+        scope.systemRtuInfo = updateListByKey(scope.systemRtuInfo, msg.payload);
+      }
+
+      scope.$applyAsync();
+      return;
+    }
+    
+    if (msg.topic === "stepping_pump_info") {
+      if (Array.isArray(msg.payload)) {
+        scope.steppingPumpInfo = updateListByKey(scope.steppingPumpInfo, msg.payload);
+
+        msg.payload.forEach(function(item) {
+          if (!item || !item.key) return;
+
+          if (item.key === "stepping_status") {
+            scope.data.steppingEnabled =
+              item.value === "ENABLED" ||
+              item.value === "Enabled" ||
+              item.value === true ||
+              item.value === "true" ||
+              item.value === 1 ||
+              item.value === "1";
+          }
+        });
+      }
+
+      scope.$applyAsync();
+      return;
+    }
+
+    if (msg.topic === "boost_pump_info") {
+      if (Array.isArray(msg.payload)) {
+        scope.boostPumpInfo = updateListByKey(scope.boostPumpInfo, msg.payload);
+
+        msg.payload.forEach(function(item) {
+          if (!item || !item.key) return;
+
+          // Update switch Boost Status dari data BE
+          if (item.key === "boost_status") {
+            scope.data.boostEnabled =
+              item.value === "ENABLED" ||
+              item.value === "Enabled" ||
+              item.value === true ||
+              item.value === "true" ||
+              item.value === 1 ||
+              item.value === "1";
+          }
+
+          // BE value hanya sebagai placeholder, jangan masuk ke input
+          if (item.key === "boost_pressure") {
+            if (scope.boostPressure) {
+              scope.boostPressure.placeholder =
+                item.value !== "-" && item.value !== undefined && item.value !== null
+                  ? String(item.value)
+                  : "Ex: 0.1";
+            }
+          }
+
+          // Untuk Boost Duration, support boost_duration atau boost_interval
+          if (item.key === "boost_duration") {
+            if (scope.boostDuration) {
+              scope.boostDuration.placeholder =
+                item.value !== "-" && item.value !== undefined && item.value !== null
+                  ? String(item.value)
+                  : "Ex: 1";
+            }
+          }
+        });
+      }
+
+      scope.$applyAsync();
+      return;
+    }
+
+    if (msg.topic === "system_settings_current") {
+      var p = msg.payload || {};
+      // Seluruh jalur update dropdown wajib melalui sync yang sama.
+      // Jangan set item.input secara langsung dari stream BE.
+      syncSystemPanelFromBE("system_type",
+        p.systemType !== undefined ? p.systemType : p.SystemType);
+      syncSystemPanelFromBE("panel_type",
+        p.panelType !== undefined ? p.panelType : p.PanelType);
+      syncSystemPanelFromBE("pump_control_count",
+        p.pumpInControl !== undefined ? p.pumpInControl : p.PumpControlCount);
+      syncSystemPanelFromBE("opr_mode",
+        p.oprMode !== undefined ? p.oprMode : p.OprMode);
+
+      scope.$applyAsync();
+      return;
+    }
+  });
+
+  scope.$on("$destroy", function() {
+    if (systemClockTimer) clearInterval(systemClockTimer);
+  });
+
+})(scope);
+</script>
+
+
+<style>
+    .hmi-root.system-page {
+        position: fixed !important;
+        top: 0 !important;
+        left: 90px !important;
+        right: 0 !important;
+        bottom: 0 !important;
+
+        width: calc(100vw - 90px) !important;
+        height: 100vh !important;
+
+        background: #060c16 !important;
+        color: #d8e2f2 !important;
+
+        padding: 14px 22px !important;
+        box-sizing: border-box !important;
+
+        font-family: "Segoe UI", Arial, sans-serif !important;
+        overflow: hidden !important;
+
+        z-index: 1000 !important;
+    }
+
+    /* HEADER */
+    .system-page .top-header {
+        height: 50px !important;
+
+        display: grid !important;
+        grid-template-columns: 250px 1fr 230px !important;
+        align-items: center !important;
+
+        background: #101722 !important;
+        border: 1px solid #263143 !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+    }
+
+    .system-page .header-left {
+        height: 100% !important;
+
+        display: flex !important;
+        align-items: center !important;
+
+        padding-left: 24px !important;
+
+        color: #8f9eb3 !important;
+        font-size: 15px !important;
+        font-weight: 900 !important;
+    }
+
+    .system-page .page-label {
+        text-transform: uppercase !important;
+    }
+
+    .system-page .header-center {
+        height: 100% !important;
+
+        background: #a5a8ab !important;
+        clip-path: polygon(7% 0, 93% 0, 100% 100%, 0 100%) !important;
+
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .system-page .brand-logo {
+        width: 250px !important;
+        height: auto !important;
+    }
+
+    .system-page .header-right {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+
+        gap: 9px !important;
+        padding-right: 12px !important;
+    }
+
+    .system-page .online-text {
+        color: #25ff2b !important;
+        font-size: 12px !important;
+        font-weight: 900 !important;
+        line-height: 1.05 !important;
+    }
+
+    .system-page .header-line {
+        width: 1px !important;
+        height: 32px !important;
+        background: #7d8798 !important;
+    }
+
+    .system-page .clock {
+        font-size: 22px !important;
+        font-weight: 900 !important;
+        color: #e5edf9 !important;
+        line-height: 1 !important;
+    }
+
+    .system-page .date {
+        font-size: 12px !important;
+        color: #92a7c1 !important;
+        text-align: right !important;
+        margin-top: 3px !important;
+    }
+
+    /* WIFI ICON */
+    .system-page .wifi-icon {
+        width: 34px !important;
+        height: 25px !important;
+        position: relative !important;
+        color: #00ff66 !important;
+    }
+
+    .system-page .wifi-icon span {
+        position: absolute !important;
+        left: 50% !important;
+        bottom: 0 !important;
+        transform: translateX(-50%) !important;
+        border-style: solid !important;
+        border-color: currentColor transparent transparent transparent !important;
+        border-radius: 70% !important;
+    }
+
+    .system-page .wifi-icon span:nth-child(1) {
+        width: 34px !important;
+        height: 19px !important;
+        border-width: 4px 9px 0 9px !important;
+    }
+
+    .system-page .wifi-icon span:nth-child(2) {
+        width: 20px !important;
+        height: 12px !important;
+        border-width: 4px 7px 0 7px !important;
+    }
+
+    .system-page .wifi-icon span:nth-child(3) {
+        width: 7px !important;
+        height: 7px !important;
+        background: currentColor !important;
+        border: none !important;
+        border-radius: 50% !important;
+    }
+
+    .system-page .wifi-good,
+    .system-page .wifi-good-text {
+        color: #54ff55 !important;
+    }
+
+    .system-page .wifi-stable,
+    .system-page .wifi-stable-text {
+        color: #b7ff3c !important;
+    }
+
+    .system-page .wifi-slow,
+    .system-page .wifi-slow-text {
+        color: #ff9900 !important;
+    }
+
+    .system-page .wifi-offline,
+    .system-page .wifi-offline-text {
+        color: #ff3333 !important;
+    }
+
+    /* TITLE */
+    .system-page .title-bar {
+        width: 86% !important;
+        height: 38px !important;
+
+        margin: 10px auto 12px auto !important;
+
+        background: #151925 !important;
+        border: 1px solid #242b39 !important;
+        border-radius: 18px !important;
+
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        color: #dce4f3 !important;
+        font-size: 21px !important;
+        font-weight: 900 !important;
+    }
+
+    /* CONTENT */
+    .system-page .system-content {
+        display: grid !important;
+        grid-template-columns: 1.25fr 0.95fr !important;
+        gap: 16px !important;
+
+        height: calc(100vh - 130px) !important;
+        overflow: hidden !important;
+    }
+
+    .system-page .system-left,
+    .system-page .system-right {
+        min-width: 0 !important;
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .system-page .system-left {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    .system-page .system-left::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* CARD */
+    .system-page .system-card {
+        background: #141923 !important;
+        border: 1px solid #263143 !important;
+        border-radius: 16px !important;
+
+        padding: 0 !important;
+        box-sizing: border-box !important;
+
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+
+        overflow: hidden !important;
+        margin-bottom: 10px !important;
+    }
+
+    .system-page .system-panel-card,
+    .system-page .system-rtu-card,
+    .system-page .stepping-pump-card,
+    .system-page .boost-pump-card {
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    /* ACCORDION */
+    .system-page .accordion-header,
+    .system-page .info-accordion-header {
+        height: 38px !important;
+
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+
+        padding: 0 14px !important;
+        box-sizing: border-box !important;
+
+        color: #8f9eb3 !important;
+        font-size: 15px !important;
+        font-weight: 500 !important;
+
+        cursor: pointer !important;
+    }
+
+    .system-page .accordion-body {
+        padding: 0 16px 12px 16px !important;
+        box-sizing: border-box !important;
+    }
+
+    .system-page .accordion-arrow {
+        width: 15px !important;
+        height: 15px !important;
+
+        border-right: 3px solid #59d2ff !important;
+        border-bottom: 3px solid #59d2ff !important;
+
+        transform: rotate(45deg) !important;
+        transition: 0.2s !important;
+        flex: 0 0 15px !important;
+    }
+
+    .system-page .arrow-open {
+        transform: rotate(225deg) !important;
+    }
+
+    .system-page .system-card.accordion-closed {
+        height: 38px !important;
+        min-height: 38px !important;
+        max-height: 38px !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .system-page .system-card.accordion-closed .accordion-body {
+        display: none !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* SETTING ROW */
+    .system-page .setting-row {
+        height: 40px !important;
+
+        display: grid !important;
+        grid-template-columns: 51% 25% 20% !important;
+        gap: 8px !important;
+        align-items: center !important;
+
+        border-bottom: 1px solid #2484c7 !important;
+    }
+
+    .system-page .setting-row:last-child {
+        border-bottom: none !important;
+    }
+
+    .system-page .setting-label {
+        color: #ffffff !important;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .system-page .setting-input-wrap {
+        height: 29px !important;
+        position: relative !important;
+    }
+
+    .system-page .setting-input {
+        width: 100% !important;
+        height: 29px !important;
+
+        background: #0f141d !important;
+        border: 1px solid #202a3a !important;
+        border-radius: 7px !important;
+
+        color: #ffffff !important;
+        font-size: 19px !important;
+        font-weight: 500 !important;
+
+        padding: 0 8px !important;
+        box-sizing: border-box !important;
+
+        outline: none !important;
+    }
+
+    .system-page .setting-input::placeholder {
+        color: #6d7280 !important;
+        font-weight: 500 !important;
+    }
+
+    .system-page .setting-select {
+        cursor: pointer !important;
+        appearance: auto !important;
+        -webkit-appearance: menulist !important;
+    }
+
+    .system-page .setting-select option {
+        background: #0f141d !important;
+        color: #ffffff !important;
+    }
+
+    .system-page .setting-unit {
+        position: absolute !important;
+        right: 8px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+
+        color: #ffffff !important;
+        font-size: 11px !important;
+        font-weight: 800 !important;
+    }
+
+    .system-page .setting-set-btn {
+        height: 29px !important;
+
+        background: #56b5d3 !important;
+        color: #ffffff !important;
+
+        border: none !important;
+        border-radius: 7px !important;
+
+        font-size: 22px !important;
+        font-weight: 900 !important;
+
+        cursor: pointer !important;
+    }
+
+    /* SWITCH ROW */
+    .system-page .switch-row {
+        height: 40px !important;
+
+        display: grid !important;
+        grid-template-columns: 51% 45% !important;
+        gap: 8px !important;
+        align-items: center !important;
+    }
+
+    .system-page .flow-switch-btn {
+        height: 34px !important;
+
+        border: 1px solid #5ac878 !important;
+        border-radius: 8px !important;
+
+        background: #0f141d !important;
+
+        padding: 0 8px !important;
+        box-sizing: border-box !important;
+
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 10px !important;
+
+        cursor: pointer !important;
+    }
+
+    .system-page .flow-switch-text {
+        font-size: 15px !important;
+        font-weight: 500 !important;
+    }
+
+    .system-page .switch-enabled .flow-switch-text {
+        color: #5ac878 !important;
+    }
+
+    .system-page .switch-disabled .flow-switch-text {
+        color: #ef5550 !important;
+    }
+
+    .system-page .flow-switch {
+        width: 39px !important;
+        height: 22px !important;
+
+        border-radius: 14px !important;
+
+        display: flex !important;
+        align-items: center !important;
+
+        padding: 2px !important;
+        box-sizing: border-box !important;
+    }
+
+    .system-page .switch-enabled .flow-switch {
+        justify-content: flex-end !important;
+        background: rgba(78, 140, 65, 0.75) !important;
+    }
+
+    .system-page .switch-disabled .flow-switch {
+        justify-content: flex-start !important;
+        background: rgba(190, 0, 0, 0.5) !important;
+    }
+
+    .system-page .flow-switch-dot {
+        width: 18px !important;
+        height: 18px !important;
+
+        background: #ffffff !important;
+        border-radius: 50% !important;
+    }
+
+    /* RIGHT INFO */
+    .system-page .system-info-card {
+        height: 100% !important;
+        padding: 8px 10px 10px 10px !important;
+        overflow: hidden !important;
+    }
+
+    .system-page .info-card-title {
+        color: #ffffff !important;
+        font-size: 21px !important;
+        font-weight: 500 !important;
+        text-align: center !important;
+        margin-bottom: 14px !important;
+    }
+
+    .system-page .system-info-list {
+        max-height: calc(100vh - 195px) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    .system-page .system-info-list::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .system-page .info-accordion {
+        border: 1px solid #4fd5ff !important;
+        border-radius: 10px !important;
+        margin-bottom: 7px !important;
+        overflow: hidden !important;
+    }
+
+    .system-page .info-accordion-header {
+        height: 34px !important;
+        color: #8f9eb3 !important;
+        font-size: 15px !important;
+    }
+
+    .system-page .info-accordion-body {
+        padding: 0 7px 7px 7px !important;
+        box-sizing: border-box !important;
+    }
+
+    .system-page .system-info-row {
+        height: 35px !important;
+
+        background: #0f141d !important;
+        border: 1px solid #252e3e !important;
+        border-radius: 7px !important;
+
+        margin-bottom: 4px !important;
+        padding: 0 9px !important;
+        box-sizing: border-box !important;
+
+        display: grid !important;
+        grid-template-columns: 55% 45% !important;
+        align-items: center !important;
+    }
+
+    .system-page .system-info-label {
+        color: #ffffff !important;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .system-page .system-info-value {
+        color: #ffffff !important;
+        font-size: 15px !important;
+        font-weight: 500 !important;
+        text-align: right !important;
+
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* 7 INCH */
+    @media screen and (max-width: 1300px) and (max-height: 850px) {
+        .hmi-root.system-page {
+            padding: 14px 20px !important;
+        }
+
+        .system-page .top-header {
+            height: 48px !important;
+            grid-template-columns: 250px 1fr 230px !important;
+        }
+
+        .system-page .brand-logo {
+            width: 250px !important;
+        }
+
+        .system-page .title-bar {
+            height: 38px !important;
+            font-size: 21px !important;
+        }
+
+        .system-page .system-content {
+            height: calc(100vh - 130px) !important;
+        }
+    }
+  /* ================= SYSTEM PANEL SETTINGS DESIGN ================= */
+  
+  .system-page .system-panel-card {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  }
+  
+  .system-page .system-panel-row {
+  height: 47px !important;
+  
+  display: grid !important;
+  grid-template-columns: 52% 26% 20% !important;
+  gap: 8px !important;
+  align-items: center !important;
+  
+  border-bottom: 1px solid #2769bd !important;
+  }
+  
+  .system-page .system-panel-row .setting-label {
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  }
+  
+  .system-page .system-panel-select {
+  height: 31px !important;
+  
+  background: #0f141d !important;
+  border: 1px solid #242c3a !important;
+  border-radius: 8px !important;
+  
+  color: #ffffff !important;
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  
+  padding: 0 8px !important;
+  
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  
+  cursor: pointer !important;
+  }
+  
+  .system-page .system-panel-select option {
+  background: #0f141d !important;
+  color: #ffffff !important;
+  }
+  
+  .system-page .system-panel-row .setting-set-btn {
+  height: 31px !important;
+  
+  background: #56b5d3 !important;
+  color: #ffffff !important;
+  
+  border: none !important;
+  border-radius: 7px !important;
+  
+  font-size: 23px !important;
+  font-weight: 900 !important;
+  
+  cursor: pointer !important;
+  }
+  
+  /* AUTO START ROW */
+  
+  .system-page .auto-start-row {
+  height: 36px !important;
+  
+  display: grid !important;
+  grid-template-columns: 52% 46% !important;
+  gap: 8px !important;
+  align-items: center !important;
+  
+  margin-top: 8px !important;
+  
+  border: 1px solid #6b7280 !important;
+  border-radius: 8px !important;
+  
+  padding: 0 8px !important;
+  box-sizing: border-box !important;
+  
+  background: #0f141d !important;
+  }
+  
+  .system-page .auto-start-label {
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  }
+  
+  .system-page .auto-start-switch-btn {
+  height: 30px !important;
+  
+  background: transparent !important;
+  border: none !important;
+  
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  
+  gap: 10px !important;
+  padding: 0 !important;
+  
+  cursor: pointer !important;
+  }
+  
+  .system-page .auto-start-text {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  }
+  
+  .system-page .auto-enabled .auto-start-text {
+  color: #5ac878 !important;
+  }
+  
+  .system-page .auto-disabled .auto-start-text {
+  color: #ef5550 !important;
+  }
+  
+  .system-page .auto-switch {
+  width: 52px !important;
+  height: 28px !important;
+  
+  border-radius: 20px !important;
+  
+  display: flex !important;
+  align-items: center !important;
+  
+  padding: 3px !important;
+  box-sizing: border-box !important;
+  }
+  
+  .system-page .auto-enabled .auto-switch {
+  justify-content: flex-end !important;
+  background: #6fbe61 !important;
+  }
+  
+  .system-page .auto-disabled .auto-switch {
+  justify-content: flex-start !important;
+  background: #b44646 !important;
+  }
+  
+  .system-page .auto-switch-dot {
+  width: 22px !important;
+  height: 22px !important;
+  
+  background: #ffffff !important;
+  border-radius: 50% !important;
+  }
+
+
+  /* ======================================================
+   COMPACT STEPPING PUMP SETTINGS
+   Style disamakan dengan card setting lain
+   ====================================================== */
+
+.system-page .stepping-body {
+  padding: 0 16px 12px 16px !important;
+}
+
+.system-page .stepping-compact-row {
+  height: 40px !important;
+
+  display: grid !important;
+  grid-template-columns: 51% 25% 20% !important;
+  gap: 8px !important;
+  align-items: center !important;
+
+  border-bottom: 1px solid #2484c7 !important;
+}
+
+.system-page .stepping-compact-row .setting-label {
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+}
+
+.system-page .stepping-minute-wrap {
+  height: 29px !important;
+  position: relative !important;
+}
+
+.system-page .stepping-minute-input {
+  height: 29px !important;
+
+  font-size: 19px !important;
+  font-weight: 500 !important;
+
+  padding: 0 62px 0 8px !important;
+  border-radius: 7px !important;
+}
+
+.system-page .stepping-minute-unit {
+  right: 8px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+/* Stepping Status pakai style Auto Start yang sudah ada */
+.system-page .stepping-status-compact {
+  height: 36px !important;
+  margin-top: 8px !important;
+
+  display: grid !important;
+  grid-template-columns: 52% 46% !important;
+  gap: 8px !important;
+  align-items: center !important;
+
+  border: 1px solid #6b7280 !important;
+  border-radius: 8px !important;
+
+  padding: 0 8px !important;
+  box-sizing: border-box !important;
+
+  background: #0f141d !important;
+}
+
+/* Force button dibuat lebih kecil agar cocok 7 inch */
+.system-page .compact-force-stepping-btn {
+  width: 100% !important;
+  height: 40px !important;
+
+  margin-top: 8px !important;
+
+  background: #3b82d0 !important;
+  color: #ffffff !important;
+
+  border: none !important;
+  border-radius: 8px !important;
+
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px !important;
+
+  cursor: pointer !important;
+}
+
+.system-page .compact-force-stepping-btn:hover {
+  background: #4a91df !important;
+}
+
+/* 7 INCH EXTRA COMPACT */
+@media screen and (max-width: 1300px) and (max-height: 850px) {
+  .system-page .stepping-body {
+    padding: 0 16px 10px 16px !important;
+  }
+
+  .system-page .stepping-compact-row {
+    height: 38px !important;
+  }
+
+  .system-page .stepping-status-compact {
+    height: 34px !important;
+    margin-top: 7px !important;
+  }
+
+  .system-page .compact-force-stepping-btn {
+    height: 38px !important;
+    margin-top: 7px !important;
+    font-size: 22px !important;
+  }
+}
+
+/* ======================================================
+   BOOST PUMP SETTINGS DESIGN
+   Compact, disamakan dengan card lain
+   ====================================================== */
+
+.system-page .boost-pump-card {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.system-page .boost-body {
+  padding: 0 16px 12px 16px !important;
+}
+
+.system-page .boost-compact-row {
+  height: 40px !important;
+
+  display: grid !important;
+  grid-template-columns: 51% 25% 20% !important;
+  gap: 8px !important;
+  align-items: center !important;
+
+  border-bottom: 1px solid #2484c7 !important;
+}
+
+.system-page .boost-compact-row .setting-label {
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+}
+
+.system-page .boost-input-wrap {
+  height: 29px !important;
+  position: relative !important;
+}
+
+.system-page .boost-input {
+  height: 29px !important;
+
+  font-size: 19px !important;
+  font-weight: 500 !important;
+
+  padding: 0 42px 0 8px !important;
+  border-radius: 7px !important;
+}
+
+.system-page .boost-unit {
+  right: 8px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+/* BOOST STATUS */
+
+.system-page .boost-status-compact {
+  height: 36px !important;
+  margin-top: 8px !important;
+
+  display: grid !important;
+  grid-template-columns: 52% 46% !important;
+  gap: 8px !important;
+  align-items: center !important;
+
+  border: 1px solid #6b7280 !important;
+  border-radius: 8px !important;
+
+  padding: 0 8px !important;
+  box-sizing: border-box !important;
+
+  background: #0f141d !important;
+}
+
+/* FORCE BOOST */
+
+.system-page .compact-force-boost-btn {
+  width: 100% !important;
+  height: 40px !important;
+
+  margin-top: 8px !important;
+
+  background: #3b82d0 !important;
+  color: #ffffff !important;
+
+  border: none !important;
+  border-radius: 8px !important;
+
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px !important;
+
+  cursor: pointer !important;
+}
+
+.system-page .compact-force-boost-btn:hover {
+  background: #4a91df !important;
+}
+
+/* 7 INCH EXTRA COMPACT */
+@media screen and (max-width: 1300px) and (max-height: 850px) {
+  .system-page .boost-body {
+    padding: 0 16px 10px 16px !important;
+  }
+
+  .system-page .boost-compact-row {
+    height: 38px !important;
+  }
+
+  .system-page .boost-status-compact {
+    height: 34px !important;
+    margin-top: 7px !important;
+  }
+
+  .system-page .compact-force-boost-btn {
+    height: 38px !important;
+    margin-top: 7px !important;
+    font-size: 22px !important;
+  }
+}
+
+.system-page .stepping-minute-select {
+height: 29px !important;
+
+background: #0f141d !important;
+border: 1px solid #202a3a !important;
+border-radius: 7px !important;
+
+color: #ffffff !important;
+font-size: 17px !important;
+font-weight: 500 !important;
+
+padding: 0 34px 0 8px !important;
+box-sizing: border-box !important;
+
+cursor: pointer !important;
+
+appearance: auto !important;
+-webkit-appearance: menulist !important;
+}
+
+.system-page .stepping-minute-select option {
+background: #0f141d !important;
+color: #ffffff !important;
+}
+
+/* ======================================================
+   RTU CONTROL CARD
+   ====================================================== */
+
+.system-page .rtu-control-card {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.system-page .rtu-control-body {
+  padding: 0 18px 16px 18px !important;
+  box-sizing: border-box !important;
+
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+
+.system-page .rtu-control-btn {
+  height: 48px !important;
+
+  border: none !important;
+  border-radius: 8px !important;
+
+  color: #ffffff !important;
+  font-size: 26px !important;
+  font-weight: 600 !important;
+
+  cursor: pointer !important;
+  letter-spacing: 0.3px !important;
+}
+
+/* START - aman / menghidupkan service */
+.system-page .rtu-start-btn {
+  background: #55c878 !important;
+}
+
+/* RESTART - recovery / maintenance */
+.system-page .rtu-restart-btn {
+  background: #4fb6d3 !important;
+}
+
+/* STOP - warning karena service bisa mati terus */
+.system-page .rtu-stop-btn {
+  background: #c89a2b !important;
+}
+
+/* REBOOT - paling berisiko */
+.system-page .rtu-reboot-btn {
+  background: #c83222 !important;
+}
+
+.system-page .rtu-start-btn:hover {
+  background: #67d98a !important;
+}
+
+.system-page .rtu-restart-btn:hover {
+  background: #62c8e4 !important;
+}
+
+.system-page .rtu-stop-btn:hover {
+  background: #d9aa35 !important;
+}
+
+.system-page .rtu-reboot-btn:hover {
+  background: #dd3a27 !important;
+}
+
+/* Kalau hanya 3 tombol, tombol terakhir tetap rata kiri seperti design */
+.system-page .rtu-control-btn:last-child:nth-child(odd) {
+  grid-column: span 1 !important;
+}
+
+/* 7 INCH */
+@media screen and (max-width: 1300px) and (max-height: 850px) {
+  .system-page .rtu-control-body {
+    padding: 0 18px 14px 18px !important;
+    gap: 10px !important;
+  }
+
+  .system-page .rtu-control-btn {
+    height: 44px !important;
+    font-size: 18px !important;
+  }
+}
+
+/* ======================================================
+   STATIC IP SETTINGS CARD - LEFT PANEL
+   ====================================================== */
+
+.system-page .static-ip-card {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.system-page .static-ip-body {
+  padding: 0 12px 8px 12px !important;
+  box-sizing: border-box !important;
+}
+
+.system-page .static-ip-row {
+  height: 36px !important;
+
+  display: grid !important;
+  grid-template-columns: 1fr 84px !important;
+  gap: 10px !important;
+  align-items: center !important;
+
+  border-bottom: 1px solid #2769bd !important;
+}
+
+.system-page .static-ip-row:last-child {
+  border-bottom: none !important;
+}
+
+.system-page .static-ip-name {
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.system-page .static-ip-set-btn {
+  height: 26px !important;
+
+  background: #56b5d3 !important;
+  color: #ffffff !important;
+
+  border: none !important;
+  border-radius: 7px !important;
+
+  font-size: 21px !important;
+  font-weight: 900 !important;
+
+  cursor: pointer !important;
+}
+
+/* ======================================================
+BUTTON FUNCTION SETTINGS CARD
+====================================================== */
+
+.system-page .button-function-card {
+height: auto !important;
+min-height: 0 !important;
+}
+
+.system-page .button-function-body {
+padding: 0 16px 12px 16px !important;
+box-sizing: border-box !important;
+}
+
+.system-page .button-function-row {
+height: 47px !important;
+
+display: grid !important;
+grid-template-columns: 52% 26% 20% !important;
+gap: 8px !important;
+align-items: center !important;
+
+border-bottom: 1px solid #2769bd !important;
+}
+
+.system-page .button-function-row:last-child {
+border-bottom: none !important;
+}
+
+.system-page .button-function-row .setting-label {
+color: #ffffff !important;
+font-size: 14px !important;
+font-weight: 400 !important;
+
+white-space: nowrap !important;
+overflow: hidden !important;
+text-overflow: ellipsis !important;
+}
+
+.system-page .button-function-select {
+height: 31px !important;
+
+background: #0f141d !important;
+border: 1px solid #242c3a !important;
+border-radius: 8px !important;
+
+color: #ffffff !important;
+font-size: 18px !important;
+font-weight: 500 !important;
+
+padding: 0 8px !important;
+
+appearance: auto !important;
+-webkit-appearance: menulist !important;
+
+cursor: pointer !important;
+}
+
+.system-page .button-function-select option {
+background: #0f141d !important;
+color: #ffffff !important;
+}
+
+.system-page .button-function-row .setting-set-btn {
+height: 31px !important;
+
+background: #56b5d3 !important;
+color: #ffffff !important;
+
+border: none !important;
+border-radius: 7px !important;
+
+font-size: 23px !important;
+font-weight: 900 !important;
+
+cursor: pointer !important;
+}
+
+/* 7 inch */
+@media screen and (max-width: 1300px) and (max-height: 850px) {
+.system-page .button-function-row {
+height: 44px !important;
+}
+
+.system-page .button-function-select {
+font-size: 16px !important;
+}
+}
+
+</style>
