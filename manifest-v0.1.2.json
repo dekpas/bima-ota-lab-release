@@ -1,0 +1,21 @@
+{
+  "schema": "bima-ota-ui-patch-v1",
+  "version": "0.1.2",
+  "releaseType": "visual-test-only",
+  "target": {
+    "nodeId": "fc7c17b4305433d6",
+    "type": "ui_template",
+    "name": "UI_System Settings",
+    "group": "53d4e5349395de93",
+    "property": "format"
+  },
+  "baseFormatSha256": "867478d21fc996b5a9b03019f7799372b821b1464ccd50b421c43d542d496167",
+  "updatedFormatSha256": "6abf9359c56aadd8d5e89ec649a4cb6f887941be171de1bb7aac754845bd2dbe",
+  "patch": {
+    "find": "    <div class=\"title-bar\">\n        {{data.PumpSite}}\n    </div>",
+    "replace": "    <div class=\"title-bar\">\n        {{data.PumpSite}}\n        <span id=\"bima-ota-test-v012\" style=\"display:inline-flex!important;align-items:center!important;margin-left:14px!important;padding:0 9px!important;min-height:22px!important;border:1px solid #287956!important;border-radius:7px!important;background:#153b2e!important;color:#87eeb5!important;font-size:11px!important;font-weight:800!important;white-space:nowrap!important;line-height:20px!important;pointer-events:none!important;\">OTA TEST v0.1.2</span>\n    </div>"
+  },
+  "message": "Tambahkan indikator OTA TEST v0.1.2 pada title bar System Settings, tanpa mengubah logika JS atau UI controls.",
+  "labOnly": true,
+  "signed": false
+}
