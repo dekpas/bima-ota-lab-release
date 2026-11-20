@@ -1,0 +1,24 @@
+{
+  "schema": "bima-ota-ui-patch-v1",
+  "version": "0.1.3",
+  "releaseType": "visual-test-only",
+  "deviceAllowlist": [
+    "RTU-MF-068"
+  ],
+  "target": {
+    "nodeId": "fc7c17b4305433d6",
+    "type": "ui_template",
+    "name": "UI_System Settings",
+    "group": "53d4e5349395de93",
+    "property": "format"
+  },
+  "baseFormatSha256": "6abf9359c56aadd8d5e89ec649a4cb6f887941be171de1bb7aac754845bd2dbe",
+  "updatedFormatSha256": "e43c2cbdb173c71c1d3ce189e81345c193c3e2e4d4fcb8050f7c03577fb991bd",
+  "patch": {
+    "find": "    <div class=\"title-bar\">\n        {{data.PumpSite}}\n        <span id=\"bima-ota-test-v012\" style=\"display:inline-flex!important;align-items:center!important;margin-left:14px!important;padding:0 9px!important;min-height:22px!important;border:1px solid #287956!important;border-radius:7px!important;background:#153b2e!important;color:#87eeb5!important;font-size:11px!important;font-weight:800!important;white-space:nowrap!important;line-height:20px!important;pointer-events:none!important;\">OTA TEST v0.1.2</span>\n    </div>",
+    "replace": "    <div class=\"title-bar\">\n        {{data.PumpSite}}\n        <span id=\"bima-ota-test-v013\" style=\"display:inline-flex!important;align-items:center!important;margin-left:14px!important;padding:0 9px!important;min-height:22px!important;border:1px solid #287956!important;border-radius:7px!important;background:#153b2e!important;color:#87eeb5!important;font-size:11px!important;font-weight:800!important;white-space:nowrap!important;line-height:20px!important;pointer-events:none!important;\">OTA TEST v0.1.3</span>\n    </div>"
+  },
+  "message": "Pilot visual 0.1.3: ubah badge OTA TEST v0.1.2 menjadi OTA TEST v0.1.3. Tidak mengubah logic dan kontrol.",
+  "labOnly": true,
+  "signed": false
+}
