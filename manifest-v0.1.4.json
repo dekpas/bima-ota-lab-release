@@ -20,5 +20,5 @@
   },
   "message": "Pilot visual v0.1.4 - OTA badge update only",
   "labOnly": true,
-  "signed": false
+  "signed": true
 }
